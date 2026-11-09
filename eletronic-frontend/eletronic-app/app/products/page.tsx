@@ -5,6 +5,7 @@ import { Product } from "@/interfaces/product";
 import { useOrder } from "@/hooks/useOrder";
 import AuthGuard from "@/components/AuthGuard";
 import Navbar from "@/components/Navbar";
+import { api } from "@/config/axios";
 
 export default function ProductsPage() {
   const { checkout, loading: checkoutLoading } = useOrder();
@@ -17,25 +18,36 @@ export default function ProductsPage() {
   const [orderSuccess, setOrderSuccess] = useState<string | null>(null);
   const [orderError, setOrderError] = useState<string | null>(null);
 
-  async function loadProducts() {
-    try {
-      setLoading(true);
-      const res = await fetch("http://localhost:8000/api/products/");
-      const data = await res.json();
-      const list = Array.isArray(data)
-        ? data
-        : Array.isArray(data?.data)
+ 
+async function loadProducts() {
+  try {
+    setLoading(true);
+
+    const res = await api.get("/api/products/");
+
+    console.log("Products API response:", res.data);
+
+    const data = res.data;
+
+    const list = Array.isArray(data)
+      ? data
+      : Array.isArray(data?.data)
         ? data.data
         : Array.isArray(data?.products)
-        ? data.products
-        : [];
-      setProducts(list);
-    } catch (err) {
-      console.error("Gagal load produk:", err);
-    } finally {
-      setLoading(false);
-    }
+          ? data.products
+          : [];
+
+    setProducts(list);
+  } catch (err: any) {
+    console.error("Gagal load produk:", err);
+    console.error("API Error:", err.response?.data);
+
+    setProducts([]);
+  } finally {
+    setLoading(false);
   }
+}
+
 
   useEffect(() => {
     loadProducts();
