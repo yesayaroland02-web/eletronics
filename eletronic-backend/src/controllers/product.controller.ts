@@ -9,58 +9,57 @@ import { MulterRequest } from "../middlewares/upload.middleware.js";
 
 // catatan: validasi dimatikan untuk uji error handler
 
+
 export async function createProductHandler(
   req: MulterRequest,
   res: Response,
   next: NextFunction,
 ) {
   try {
+    console.log("=== DEBUG CREATE PRODUCT ===");
+    console.log("BODY:", req.body);
+    console.log("FILE:", req.file ? {
+      originalname: req.file.originalname,
+      mimetype: req.file.mimetype,
+      size: req.file.size,
+    } : "FILE TIDAK DITERIMA");
+
     const { title, category, description, stock, price } = req.body;
 
     let imageUrl: string | undefined;
 
-    // jika ada file yang diunggah lewat Multer
     if (req.file) {
       const uploadResult = await uploadToCloudinary(
         req.file.buffer,
         "warmad-products",
       );
+
       imageUrl = uploadResult.secure_url;
+
+      console.log("CLOUDINARY URL:", imageUrl);
     }
 
-    // setelah dapat gambar produk, baru dicatat ke database
     const product = await productService.createProduct({
       title,
       category,
       description,
-      imageUrl: imageUrl,
-      stock: stock,
-      price: price,
+      imageUrl,
+      stock: Number(stock),
+      price: Number(price),
     });
 
-    // kirim notifikasi email ke admin secara asynchronous
-    const adminEmail = process.env.EMAIL_USER;
-    if (adminEmail) {
-      sendNewProductNotification({
-        to: adminEmail,
-        productTitle: product.title,
-        category: product.category,
-        price: Number(product.price),
-        stock: product.stock,
-        imageUrl: product.imageUrl || undefined,
-      }).catch((error) => {
-        console.error("Gagal mengirim email notifikasi: ", error.message);
-      });
-    }
+    console.log("PRODUCT SAVED:", product);
 
-    // setelah sukses, lempar response
-    return res
-      .status(201)
-      .json({ message: "Produk berhasil dibuat", data: product });
-  } catch (error: any) {
+    return res.status(201).json({
+      message: "Produk berhasil dibuat",
+      data: product,
+    });
+  } catch (error) {
+    console.error("CREATE PRODUCT ERROR:", error);
     next(error);
   }
 }
+
 
 export async function getAllProductsHandler(
   _req: Request,
