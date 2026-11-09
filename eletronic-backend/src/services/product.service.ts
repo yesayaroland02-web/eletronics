@@ -1,10 +1,8 @@
+
 import prisma from "../config/db.js";
 import { redis } from "../config/redis.js";
 import { enqueueLowStockNotification } from "../utils/queues/stockQueue.js";
 
-/**
- * Interface untuk data input pembuatan produk baru
- */
 export interface CreateProductInput {
   title: string;
   category: string;
@@ -14,9 +12,6 @@ export interface CreateProductInput {
   price: number;
 }
 
-/**
- * Interface untuk data input pembaharuan produk (semua field bersifat opsional)
- */
 export interface UpdateProductInput {
   title?: string;
   category?: string;
@@ -42,34 +37,27 @@ export async function createProduct(data: CreateProductInput) {
     await enqueueLowStockNotification(product.title, product.stock);
   }
 
-  // hapus/invalisasi cache: setiap ada produk baru, cache getAllProducts wajib dihapus
-  // notes: harus dilakukan juga di fitur Update
-  // supaya data terbaru langsung muncul saat user melakukan get all berikutnya
   await redis.del("products:all");
+
   return product;
 }
 
 export async function getAllProducts() {
-  const startTime = performance.now(); // mulai hitung waktu
+  const startTime = performance.now();
   const cacheKey = "products:all";
 
-  // cek apakah data sudah ada di Redis Cache
   const cachedData = await redis.get(cacheKey);
 
   if (cachedData) {
-    // untuk mendefinisikan berapa lama/cepat redis ini bekerja
     const endTime = performance.now();
-    const responseTime = `${(endTime - startTime).toFixed(2)} ms`;
 
-    // kembalikan data dari cache beserta metadata bukti
     return {
       source: "cache (Redis)",
-      responseTime,
+      responseTime: `${(endTime - startTime).toFixed(2)} ms`,
       data: cachedData,
     };
   }
 
-  // jika tidak ada di cache (Cache Miss), ambil dari Database
   const products = await prisma.product.findMany({
     where: {
       deletedAt: null,
@@ -79,21 +67,19 @@ export async function getAllProducts() {
     },
   });
 
-  // simpan data ke redis cache dengan masa aktif (TTL) misal 60 detik
   await redis.set(cacheKey, products, { ex: 60 });
 
   const endTime = performance.now();
-  const responseTime = `${(endTime - startTime).toFixed(2)} ms`;
 
   return {
     source: "database",
-    responseTime,
+    responseTime: `${(endTime - startTime).toFixed(2)} ms`,
     data: products,
   };
 }
 
 export async function getProductById(id: string) {
-  return await prisma.product.findFirst({
+  return prisma.product.findFirst({
     where: {
       id,
       deletedAt: null,
@@ -101,27 +87,42 @@ export async function getProductById(id: string) {
   });
 }
 
-export async function updateProduct(id: string, data: UpdateProductInput) {
-  return await prisma.product.update({
+export async function updateProduct(
+  id: string,
+  data: UpdateProductInput,
+) {
+  const product = await prisma.product.update({
     where: { id },
     data,
   });
+
+  await redis.del("products:all");
+
+  return product;
 }
 
 export async function softDeleteProduct(id: string) {
-  return await prisma.product.update({
+  const product = await prisma.product.update({
     where: { id },
     data: {
       deletedAt: new Date(),
     },
   });
+
+  await redis.del("products:all");
+
+  return product;
 }
 
 export async function restoreProduct(id: string) {
-  return await prisma.product.update({
+  const product = await prisma.product.update({
     where: { id },
     data: {
       deletedAt: null,
     },
   });
+
+  await redis.del("products:all");
+
+  return product;
 }
