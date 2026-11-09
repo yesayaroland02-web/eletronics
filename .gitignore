@@ -1,6 +1,14 @@
+# Backend
 /eletronic-backend/node_modules/
 /eletronic-backend/dist/
+/eletronic-backend/.env
+
+# Frontend
 /eletronic-frontend/eletronic-app/.next/
 /eletronic-frontend/eletronic-app/node_modules/
-/eletronic-backend/.env/
+
+# Semua file environment
+.env
+.env.*
+!.env.example
 
