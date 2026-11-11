@@ -93,7 +93,7 @@ async function startServer() {
     await testDbConnection();
 
     server.listen(PORT, "0.0.0.0", () => {
-      console.log(`Server berjalan di port "http://localhost:${PORT}"`);
+      console.log(`Server berjalan di port "${PORT}"`);
     });
   } catch (error) {
     console.error("Server gagal dijalankan:", error);
