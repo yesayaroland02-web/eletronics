@@ -1,85 +1,104 @@
+
 import express, { Request, Response } from "express";
-import prisma from "./config/db.js";
+import prisma from "./config/db";
 import cors from "cors";
 import http from "http";
 
-import productRouter from "./routes/product.router.js";
-import orderRouter from "./routes/order.router.js";
-import authRouter from "./routes/auth.router.js";
+import productRouter from "./routes/product.router";
+import orderRouter from "./routes/order.router";
+import authRouter from "./routes/auth.router";
+import checkoutRouter from "./routes/checkout.router";
 
-import { errorHandler } from "./middlewares/error.middleware.js";
-import { loggerMiddleware } from "./middlewares/logger.middleware.js";
-import { initStockChecker } from "./utils/cron/stockChecker.js";
-import { handleStockNotification } from "./utils/workers/stockWorker.js";
+import { errorHandler } from "./middlewares/error.middleware";
+import { loggerMiddleware } from "./middlewares/logger.middleware";
 
-import { initSocket } from "./config/socket.js";
+import { handleStockNotification } from "./utils/workers/stockWorker";
+import { initSocket } from "./config/socket";
 
 const app = express();
-const PORT = 8000;
 
-// CORS -> Cross Origin Resource Sharing
-// tugasnya untuk membatasi akses ke API (whitelist untuk beberapa address tertentu aja)
-// bisa multiple address
+// Mengikuti port dari hosting, default 8000 untuk lokal
+const PORT = Number(process.env.PORT) || 8000;
 
+// Daftar domain frontend yang diizinkan
+const allowedOrigins = [
+  "http://localhost:3000",
+  "http://localhost:5173",
+  "https://hotel-liart-nine.vercel.app",
+];
+
+// CORS configuration
 app.use(
   cors({
-    origin: ["http://localhost:3000", "http://localhost:5173",  "https://eletronic-app.vercel.app"],
-  }),
+    origin: allowedOrigins,
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  })
 );
 
+// Middleware JSON
 app.use(express.json());
 
-// buat http server untuk konfigurasi socket
+// HTTP Server
 const server = http.createServer(app);
 
-// inisialisasi socket.IO di atas HTTP Server
+// Inisialisasi Socket.IO
 initSocket(server);
 
-// logger haruus dipasang paling atas untuk merecord semua aktivitas di app
+// Logger
 app.use(loggerMiddleware);
 
-app.use("/api/auth", authRouter);
-app.use("/api/products", productRouter);
-app.use("/api/orders", orderRouter);
-// app.use("/api/ai", aiRouter);
-
-app.use("/api/test", (req: Request, res: Response) => {
-  res.status(200).send({
-    message: "ok",
+// Health check
+app.get("/", (req: Request, res: Response) => {
+  res.status(200).json({
+    success: true,
+    message: "Eletronic API is running",
   });
 });
 
+app.get("/api/test", (req: Request, res: Response) => {
+  res.status(200).json({
+    success: true,
+    message: "API connected successfully",
+  });
+});
+
+// API Routes
+app.use("/api/auth", authRouter);
+app.use("/api/products", productRouter);
+app.use("/api/orders", orderRouter);
+app.use("/api/checkout", checkoutRouter);
+
+// Stock notification
 app.use("/api/queues/stock-notification", handleStockNotification);
 
-// initStockChecker();
-
-// error middleware HARUS diletakkan di akhir semua router
+// Error handler harus paling akhir
 app.use(errorHandler);
 
-/**
- * Fungsi untuk menguji koneksi ke database sebelum server berjalan
- */
+// Test koneksi database
 async function testDbConnection() {
   try {
     await prisma.$queryRaw`SELECT 1`;
-    console.log("✅ Koneksi ke database Neon berhasil terhubung!");
+
+    console.log("Database Neon berhasil terhubung!");
   } catch (error) {
-    console.error("❌ Gagal terhubung ke database Neon: ", error);
-    process.exit(1);
+    console.error("Gagal terhubung ke database:", error);
+    throw error;
   }
 }
 
-/**
- * Fungsi untuk menjalankan server Express dan melakukan verifikasi koneksi DB
- */
+// Menjalankan server
 async function startServer() {
-  await testDbConnection();
+  try {
+    await testDbConnection();
 
-  // jika ingin tes socketio harus pake server
-  // jika sudah selesai, kemablikan ke app.listen
-  server.listen(PORT, () => {
-    console.log(`Server berjalan di http://localhost:${PORT}`);
-  });
+    server.listen(PORT, "0.0.0.0", () => {
+      console.log(`Server berjalan di port "http://localhost:${PORT}"`);
+    });
+  } catch (error) {
+    console.error("Server gagal dijalankan:", error);
+    process.exit(1);
+  }
 }
 
 startServer();

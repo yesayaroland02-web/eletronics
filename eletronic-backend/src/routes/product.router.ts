@@ -7,14 +7,14 @@ import {
   updateProductHandler,
   deleteProductHandler,
   restoreProductHandler,
-} from "../controllers/product.controller.js";
+} from "../controllers/product.controller";
 
 import {
   authenticate,
   authorizeRoles,
-} from "../middlewares/auth.middleware.js";
+} from "../middlewares/auth.middleware";
 
-import { uploadSingleImage } from "../middlewares/upload.middleware.js";
+import { uploadSingleImage } from "../middlewares/upload.middleware";
 import { Role } from "@prisma/client";
 
 const productRouter = Router();

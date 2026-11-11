@@ -1,7 +1,7 @@
 
-import prisma from "../config/db.js";
-import { redis } from "../config/redis.js";
-import { enqueueLowStockNotification } from "../utils/queues/stockQueue.js";
+import prisma from "../config/db";
+import { redis } from "../config/redis";
+import { enqueueLowStockNotification } from "../utils/queue/stockQueue";
 
 export interface CreateProductInput {
   title: string;

@@ -1,9 +1,9 @@
 
 import { Request, Response, NextFunction } from "express";
-import * as productService from "../services/product.service.js";
-import prisma from "../config/db.js";
-import { uploadToCloudinary } from "../services/cloudinary.service.js";
-import { MulterRequest } from "../middlewares/upload.middleware.js";
+import * as productService from "../services/product.service";
+import prisma from "../config/db";
+import { uploadToCloudinary } from "../services/cloudinary.service";
+import { MulterRequest } from "../middlewares/upload.middleware";
 
 export async function createProductHandler(
   req: MulterRequest,

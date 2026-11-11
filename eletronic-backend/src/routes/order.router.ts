@@ -6,9 +6,9 @@ import {
   getAllOrdersHandler,
   uploadPaymentProofHandler,
   getMyOrdersHandler,
-} from "../controllers/order.controller.js";
-import { authenticate, authorizeRoles } from "../middlewares/auth.middleware.js";
-import { uploadPaymentProof } from "../middlewares/upload.middleware.js";
+} from "../controllers/order.controller";
+import { authenticate, authorizeRoles } from "../middlewares/auth.middleware";
+import { uploadPaymentProof } from "../middlewares/upload.middleware";
 
 const orderRouter = Router();
 

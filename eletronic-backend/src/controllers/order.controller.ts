@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from "express";
-import * as orderService from "../services/order.service.js";
-import { uploadToCloudinary } from "../services/cloudinary.service.js";
-import { MulterRequest } from "../middlewares/upload.middleware.js";
+import * as orderService from "../services/order.service";
+import { uploadToCloudinary } from "../services/cloudinary.service";
+import { MulterRequest } from "../middlewares/upload.middleware";
 
 /**
  * 1. Handler untuk membuat order baru (Checkout)

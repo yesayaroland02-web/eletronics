@@ -2,16 +2,16 @@ import { Router } from "express";
 import {
   registerHandler,
   loginHandler,
-} from "../controllers/auth.controller.js";
-import { registerSchema, loginSchema } from "../schemas/auth.schema.js";
-import { validate } from "../middlewares/validate.middleware.js";
+} from "../controllers/auth.controller";
+import {
+  registerSchema,
+  loginSchema,
+} from "../schemas/auth.schemas";
+import { validate } from "../middlewares/validate.middleware";
 
 const authRouter = Router();
 
-// Endpoint Registrasi khusus Customer
 authRouter.post("/register", validate(registerSchema), registerHandler);
-
-// Endpoint Login
 authRouter.post("/login", validate(loginSchema), loginHandler);
 
 export default authRouter;

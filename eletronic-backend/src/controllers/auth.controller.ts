@@ -1,33 +1,29 @@
 import { Request, Response, NextFunction } from "express";
-import * as authService from "../services/auth.service.js";
+import * as authService from "../services/auth.service";
 
-/**
- * Controller: Register Customer
- */
 export async function registerHandler(
   req: Request,
   res: Response,
   next: NextFunction,
 ) {
   try {
-    // data req.body sudah pasti tervalidasi di level router
-    const { email, password } = req.body;
+    const { name, email, password } = req.body;
 
-    const user = await authService.registerCustomer({ email, password });
+    const user = await authService.registerCustomer({
+      name,
+      email,
+      password,
+    });
 
-    return res.status(201).send({
-      message: "Registrasi akun customer berhasil.",
+    return res.status(201).json({
+      message: "Registrasi akun berhasil.",
       data: user,
     });
-  } catch (error: any) {
-    // TODO 5: Teruskan error ke Global Error Middleware
+  } catch (error) {
     next(error);
   }
 }
 
-/**
- * Controller: Login User
- */
 export async function loginHandler(
   req: Request,
   res: Response,
@@ -36,13 +32,16 @@ export async function loginHandler(
   try {
     const { email, password } = req.body;
 
-    const user = await authService.loginUser({ email, password });
-
-    return res.status(200).send({
-      message: "Login berhasil",
-      data: user,
+    const result = await authService.loginUser({
+      email,
+      password,
     });
-  } catch (error: any) {
+
+    return res.status(200).json({
+      message: "Login berhasil.",
+      data: result,
+    });
+  } catch (error) {
     next(error);
   }
 }
