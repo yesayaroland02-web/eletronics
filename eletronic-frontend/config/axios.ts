@@ -1,9 +1,9 @@
 import axios from "axios";
 
 const API_BASE_URL =
-  process.env.NEXT_PUBLIC_HOTEL_DEV_URL ||
+  process.env.NEXT_PUBLIC_DEV_URL ||
   (process.env.NODE_ENV === "production"
-    ? "https://hotel-backend-rho-ten.vercel.app"
+    ? "https://eletronics-snowy.vercel.app/"
     : "http://localhost:8000");
 
 console.log("API Base URL:", API_BASE_URL);
