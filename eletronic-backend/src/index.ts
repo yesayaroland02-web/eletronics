@@ -24,7 +24,7 @@ const PORT = Number(process.env.PORT) || 8000;
 const allowedOrigins = [
   "http://localhost:3000",
   "http://localhost:5173",
-  "https://hotel-liart-nine.vercel.app",
+  "https://eletronic-frontend.vercel.app/",
 ];
 
 // CORS configuration
